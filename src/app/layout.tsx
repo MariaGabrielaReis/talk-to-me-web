@@ -16,7 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className={delius.className}>{children}</body>
+      <body className={`${delius.className} bg-black text-white`}>
+        {children}
+      </body>
     </html>
   );
 }
