@@ -1,8 +1,21 @@
+"use client";
+
+import { useEffect } from "react";
+
+import { useSocketContext } from "../../../contexts/SocketContext";
+
 import Chat from "@/components/Chat";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 
 export default function Meeting({ params }: { params: { id: string } }) {
+  const { socket } = useSocketContext();
+
+  useEffect(() => {
+    socket?.on("connect", () => console.log("connected"));
+    socket?.emit("subscribe", { meetingId: params.id, socketId: socket.id });
+  }, [socket]);
+
   return (
     <div className="h-screen">
       <Header />

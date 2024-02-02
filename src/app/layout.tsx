@@ -1,3 +1,4 @@
+import { SocketProvider } from "@/contexts/SocketContext";
 import type { Metadata } from "next";
 import { Delius } from "next/font/google";
 import "./globals.css";
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body className={`${delius.className} bg-black text-white`}>
-        {children}
+        <SocketProvider>{children}</SocketProvider>
       </body>
     </html>
   );
