@@ -2,7 +2,7 @@ import Chat from "@/components/Chat";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 
-export default function Room({ params }: { params: { id: string } }) {
+export default function Meeting({ params }: { params: { id: string } }) {
   return (
     <div className="h-screen">
       <Header />
