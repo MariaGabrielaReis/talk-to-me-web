@@ -1,7 +1,8 @@
-import { SocketProvider } from "@/contexts/SocketContext";
 import type { Metadata } from "next";
 import { Delius } from "next/font/google";
 import "./globals.css";
+
+import { SocketProvider } from "@/contexts/SocketContext";
 
 const delius = Delius({ weight: "400", subsets: ["latin"] });
 

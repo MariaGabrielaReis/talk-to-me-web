@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Cam,
   Microphone,
@@ -9,7 +11,6 @@ import {
   Phone,
   Screen,
 } from "@/Icons";
-import { useState } from "react";
 import Container from "./Container";
 
 export default function Footer() {
