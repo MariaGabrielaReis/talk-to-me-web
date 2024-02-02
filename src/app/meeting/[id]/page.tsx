@@ -43,7 +43,7 @@ export default function Meeting({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        <Chat />
+        <Chat meetingId={params.id} />
       </div>
       <Footer />
     </div>
