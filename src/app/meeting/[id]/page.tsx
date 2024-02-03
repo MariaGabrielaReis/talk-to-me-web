@@ -12,12 +12,31 @@ export default function Meeting({ params }: { params: { id: string } }) {
   const { socket } = useSocketContext();
 
   const userCam = useRef<HTMLVideoElement>(null);
+  const peerConnections = useRef<Record<string, RTCPeerConnection>>({});
 
   useEffect(() => {
-    socket?.on("connect", () => console.log("connected"));
-    socket?.emit("subscribe", { meetingId: params.id, socketId: socket.id });
-    initCamera();
+    socket?.on("connect", async () => {
+      socket?.emit("subscribe", { meetingId: params.id, socketId: socket.id });
+      await initCamera();
+    });
+
+    socket?.on("new user", data => {
+      createPeerConnection(data.socketId);
+
+      socket.emit("new user connected", {
+        to: data.socketId,
+        sender: socket.id,
+      });
+    });
+
+    socket?.on("new user connected", data => createPeerConnection(data.sender));
   }, [socket]);
+
+  function createPeerConnection(socketId: string) {
+    const config = { iceServers: [{ urls: "stun:stun.l.google.com:1902" }] };
+    const peer = new RTCPeerConnection(config);
+    peerConnections.current[socketId] = peer;
+  }
 
   async function initCamera() {
     const video = await navigator.mediaDevices.getUserMedia({
@@ -35,7 +54,7 @@ export default function Meeting({ params }: { params: { id: string } }) {
         <div className="h-full w-full m-3 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative bg-gray w-full rounded-md p-2">
             <video
-              className="h-full w-full"
+              className="h-full w-full -scale-x-100"
               ref={userCam}
               autoPlay
               playsInline
