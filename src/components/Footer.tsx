@@ -30,10 +30,6 @@ export default function Footer({
   const [isCamOff, setIsCamOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
-  const date = new Date();
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-
   function toggleMuted() {
     localStream?.getAudioTracks().forEach(track => {
       track.enabled = !track.enabled;
@@ -103,9 +99,7 @@ export default function Footer({
   return (
     <div className="fixed bottom-0 bg-black py-6 w-full">
       <Container>
-        <div className="grid grid-cols-3 items-center">
-          <span className="text-xl">{hours + ":" + minutes}</span>
-
+        <div className="flex items-center justify-center">
           <div className="flex space-x-4 justify-center">
             {isMuted ? (
               <OffMicrophone
