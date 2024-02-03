@@ -15,6 +15,7 @@ type IceCandidateProps = { candidate: RTCIceCandidate; sender: string };
 type DataStreamProps = {
   id: string;
   stream: MediaStream;
+  username: string;
 };
 
 export default function Meeting({ params }: { params: { id: string } }) {
@@ -27,16 +28,21 @@ export default function Meeting({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     socket?.on("connect", async () => {
-      socket?.emit("subscribe", { meetingId: params.id, socketId: socket.id });
+      socket?.emit("subscribe", {
+        meetingId: params.id,
+        socketId: socket.id,
+        username: sessionStorage.getItem("@talktome:username"),
+      });
       await initLocalCamera();
     });
 
     // create user
     socket?.on("new user", data => {
-      createPeerConnection(data.socketId);
+      createPeerConnection(data.socketId, false, data.username);
       socket.emit("new user connected", {
         to: data.socketId,
         sender: socket.id,
+        username: data.username,
       });
     });
 
@@ -52,7 +58,11 @@ export default function Meeting({ params }: { params: { id: string } }) {
     socket?.on("ice candidates", data => handleIceCandidates(data));
   }, [socket]);
 
-  async function createPeerConnection(socketId: string, createOffer?: boolean) {
+  async function createPeerConnection(
+    socketId: string,
+    createOffer?: boolean,
+    username?: string,
+  ) {
     const config = { iceServers: [{ urls: "stun:stun.l.google.com:1902" }] };
     const peer = new RTCPeerConnection(config);
     peerConnections.current[socketId] = peer;
@@ -84,7 +94,11 @@ export default function Meeting({ params }: { params: { id: string } }) {
 
     peerConnection.ontrack = event => {
       const remoteStream = event.streams[0];
-      const dataStream = { id: socketId, stream: remoteStream };
+      const dataStream = {
+        id: socketId,
+        stream: remoteStream,
+        username: username ?? "",
+      };
       setRemoteStreams(prev => {
         return !prev.some(stream => stream.id === socketId)
           ? [...prev, dataStream]
@@ -188,7 +202,9 @@ export default function Meeting({ params }: { params: { id: string } }) {
               autoPlay
               playsInline
             />
-            <span className="absolute bottom-2">Maby Reis</span>
+            <span className="absolute bottom-2">
+              {sessionStorage.getItem("@talktome:username")}
+            </span>
           </div>
 
           {remoteStreams.map((remoteStream, index) => {
@@ -205,7 +221,9 @@ export default function Meeting({ params }: { params: { id: string } }) {
                       video.srcObject = remoteStream.stream;
                   }}
                 ></video>
-                <span className="absolute bottom-2">Wallace Felipe</span>
+                <span className="absolute bottom-2">
+                  {remoteStream.username}
+                </span>
               </div>
             );
           })}

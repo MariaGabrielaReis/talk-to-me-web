@@ -13,7 +13,7 @@ export default function Join() {
     event.preventDefault();
 
     if (name.current?.value && meetingId.current?.value) {
-      sessionStorage.setItem("username", name.current.value);
+      sessionStorage.setItem("@talktome:username", name.current.value);
       window.location.href = `/meeting/${meetingId.current.value}`;
     }
   }

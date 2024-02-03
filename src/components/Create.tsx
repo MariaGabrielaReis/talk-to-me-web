@@ -12,7 +12,7 @@ export default function Create() {
     event.preventDefault();
 
     if (name.current?.value) {
-      sessionStorage.setItem("username", name.current.value);
+      sessionStorage.setItem("@talktome:username", name.current.value);
       window.location.href = `/meeting/${generateRandomId()}`;
     }
   }
