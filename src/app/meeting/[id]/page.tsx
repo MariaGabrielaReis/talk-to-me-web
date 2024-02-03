@@ -183,6 +183,7 @@ export default function Meeting({ params }: { params: { id: string } }) {
       </div>
 
       <Footer
+        userCam={userCam.current}
         localStream={localStream}
         peerConnections={peerConnections.current}
       />
