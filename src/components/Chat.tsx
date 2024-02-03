@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { useSocketContext } from "@/contexts/SocketContext";
+import { getHours } from "@/utils/getHours";
 
 type ChatMessage = {
   text: string;
@@ -17,6 +18,7 @@ export default function Chat({ meetingId }: { meetingId: string }) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const currentMessage = useRef<HTMLInputElement>(null);
+  const myUsername = sessionStorage.getItem("@talktome:username");
 
   useEffect(() => {
     socket?.on("chat", data => setChatMessages(prev => [...prev, data]));
@@ -28,9 +30,9 @@ export default function Chat({ meetingId }: { meetingId: string }) {
     if (currentMessage.current?.value) {
       const messageData = {
         text: currentMessage.current.value,
-        username: "Maby reis",
+        username: myUsername ?? "",
         meetingId,
-        time: new Date().toLocaleTimeString(),
+        time: getHours(),
       };
 
       socket?.emit("chat", messageData);
@@ -44,7 +46,11 @@ export default function Chat({ meetingId }: { meetingId: string }) {
       <div className="relative h-full w-full space-y-2">
         {chatMessages.map((message, index) => (
           <div key={index} className="bg-gray rounded-sm p-2">
-            <div className="flex items-center text-cyan space-x-2">
+            <div
+              className={`flex items-center ${
+                myUsername === message.username ? "text-cyan" : "text-blue-400"
+              }  space-x-2`}
+            >
               <span className="text-sm">{message.time}</span>
               <span className="font-bold">{message.username}</span>
             </div>
