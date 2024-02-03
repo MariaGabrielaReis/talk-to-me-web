@@ -12,12 +12,17 @@ type AnswerProps = { description: RTCSessionDescription; sender: string };
 
 type IceCandidateProps = { candidate: RTCIceCandidate; sender: string };
 
+type DataStreamProps = {
+  id: string;
+  stream: MediaStream;
+};
+
 export default function Meeting({ params }: { params: { id: string } }) {
   const { socket } = useSocketContext();
 
   const userCam = useRef<HTMLVideoElement>(null);
   const peerConnections = useRef<Record<string, RTCPeerConnection>>({});
-  const [remoteStreams, setRemoteStreams] = useState<MediaStream[]>([]);
+  const [remoteStreams, setRemoteStreams] = useState<DataStreamProps[]>([]);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
@@ -79,7 +84,12 @@ export default function Meeting({ params }: { params: { id: string } }) {
 
     peerConnection.ontrack = event => {
       const remoteStream = event.streams[0];
-      setRemoteStreams([...remoteStreams, remoteStream]);
+      const dataStream = { id: socketId, stream: remoteStream };
+      setRemoteStreams(prev => {
+        return !prev.some(stream => stream.id === socketId)
+          ? [...prev, dataStream]
+          : prev;
+      });
     };
 
     // add "ice server"
@@ -91,6 +101,19 @@ export default function Meeting({ params }: { params: { id: string } }) {
           candidate: event.candidate,
         });
       }
+    };
+
+    // disconnect when connection is closed
+    peer.onsignalingstatechange = event => {
+      if (peerConnection.signalingState === "closed")
+        setRemoteStreams(prev => prev.filter(stream => stream.id !== socketId));
+    };
+
+    // disconnect when connection is closed
+    peerConnection.onconnectionstatechange = event => {
+      const statuses = ["closed", "disconnected", "failed"];
+      if (statuses.includes(peerConnection.connectionState))
+        setRemoteStreams(prev => prev.filter(stream => stream.id !== socketId));
     };
   }
 
@@ -143,6 +166,15 @@ export default function Meeting({ params }: { params: { id: string } }) {
     return video;
   }
 
+  function logout() {
+    localStream?.getTracks().forEach(track => track.stop());
+    Object.values(peerConnections.current).forEach(peerConnection =>
+      peerConnection.close(),
+    );
+    socket?.disconnect();
+    window.location.href = `/`;
+  }
+
   return (
     <div className="h-screen">
       <Header />
@@ -159,7 +191,7 @@ export default function Meeting({ params }: { params: { id: string } }) {
             <span className="absolute bottom-2">Maby Reis</span>
           </div>
 
-          {remoteStreams.map((stream, index) => {
+          {remoteStreams.map((remoteStream, index) => {
             return (
               <div
                 key={index}
@@ -169,8 +201,8 @@ export default function Meeting({ params }: { params: { id: string } }) {
                   className="h-full w-full -scale-x-100"
                   autoPlay
                   ref={video => {
-                    if (video && video.srcObject !== stream)
-                      video.srcObject = stream;
+                    if (video && video.srcObject !== remoteStream.stream)
+                      video.srcObject = remoteStream.stream;
                   }}
                 ></video>
                 <span className="absolute bottom-2">Wallace Felipe</span>
@@ -186,6 +218,7 @@ export default function Meeting({ params }: { params: { id: string } }) {
         userCam={userCam.current}
         localStream={localStream}
         peerConnections={peerConnections.current}
+        logout={logout}
       />
     </div>
   );

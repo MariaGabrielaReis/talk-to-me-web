@@ -17,12 +17,14 @@ type FooterProps = {
   userCam: HTMLVideoElement | null;
   localStream: MediaStream | null;
   peerConnections: Record<string, RTCPeerConnection>;
+  logout: () => void;
 };
 
 export default function Footer({
   userCam,
   localStream,
   peerConnections,
+  logout,
 }: FooterProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [isCamOff, setIsCamOff] = useState(false);
@@ -141,7 +143,10 @@ export default function Footer({
               />
             )}
 
-            <Phone className="h-12 w-14 text-white p-2 bg-red-500  hover:bg-red-700 rounded-md cursor-pointer" />
+            <Phone
+              onClick={logout}
+              className="h-12 w-14 text-white p-2 bg-red-500  hover:bg-red-700 rounded-md cursor-pointer"
+            />
           </div>
         </div>
       </Container>
