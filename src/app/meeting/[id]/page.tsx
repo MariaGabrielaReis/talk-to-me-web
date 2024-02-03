@@ -181,7 +181,11 @@ export default function Meeting({ params }: { params: { id: string } }) {
 
         <Chat meetingId={params.id} />
       </div>
-      <Footer />
+
+      <Footer
+        localStream={localStream}
+        peerConnections={peerConnections.current}
+      />
     </div>
   );
 }
