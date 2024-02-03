@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/router";
 import { FormEvent, useRef } from "react";
 
 import Button from "./Button";
@@ -8,14 +7,13 @@ import { Input } from "./Input";
 
 export default function Create() {
   const name = useRef<HTMLInputElement>(null);
-  const router = useRouter();
 
   function handleCreateMeeting(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (name.current?.value) {
       sessionStorage.setItem("username", name.current.value);
-      router.push(`/meeting/${generateRandomId()}`);
+      window.location.href = `/meeting/${generateRandomId()}`;
     }
   }
 
