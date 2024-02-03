@@ -8,6 +8,8 @@ import Chat from "@/components/Chat";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 
+type AnswerProps = { description: RTCSessionDescription; sender: string };
+
 export default function Meeting({ params }: { params: { id: string } }) {
   const { socket } = useSocketContext();
 
@@ -20,22 +22,66 @@ export default function Meeting({ params }: { params: { id: string } }) {
       await initCamera();
     });
 
+    // create user
     socket?.on("new user", data => {
       createPeerConnection(data.socketId);
-
       socket.emit("new user connected", {
         to: data.socketId,
         sender: socket.id,
       });
     });
 
-    socket?.on("new user connected", data => createPeerConnection(data.sender));
+    // user connected to meeting
+    socket?.on("new user connected", data =>
+      createPeerConnection(data.sender, true),
+    );
+
+    // user send or receive an offer to participate
+    socket?.on("sdp", data => handleAnswer(data));
   }, [socket]);
 
-  function createPeerConnection(socketId: string) {
+  async function createPeerConnection(socketId: string, createOffer?: boolean) {
     const config = { iceServers: [{ urls: "stun:stun.l.google.com:1902" }] };
     const peer = new RTCPeerConnection(config);
     peerConnections.current[socketId] = peer;
+
+    if (createOffer) {
+      const peerConnection = peerConnections.current[socketId];
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+
+      // send offer to participate
+      socket?.emit("sdp", {
+        to: socketId,
+        sender: socket.id,
+        description: peerConnection.localDescription,
+      });
+    }
+  }
+
+  async function handleAnswer(data: AnswerProps) {
+    const peerConnection = peerConnections.current[data.sender];
+
+    // receive offer to participate
+    if (data.description.type === "offer") {
+      await peerConnection.setRemoteDescription(data.description);
+
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+
+      socket?.emit("sdp", {
+        to: data.sender,
+        sender: socket.id,
+        description: peerConnection.localDescription,
+      });
+    }
+
+    // accept offer to participate
+    if (data.description.type === "answer") {
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.description),
+      );
+    }
   }
 
   async function initCamera() {
