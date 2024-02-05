@@ -214,7 +214,7 @@ export default function Meeting({ params }: { params: { id: string } }) {
                 className="relative bg-gray w-full rounded-md p-2"
               >
                 <video
-                  className="h-full w-full -scale-x-100"
+                  className="h-full w-full"
                   autoPlay
                   ref={video => {
                     if (video && video.srcObject !== remoteStream.stream)
